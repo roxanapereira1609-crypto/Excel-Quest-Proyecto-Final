@@ -10,7 +10,7 @@
   justify-content: center;
   align-items: center;
   padding: 30px 20px;
-  background: linear-gradient(135deg, #e8f5e9, #e3f2fd);
+  background: linear-gradient(135deg, #abebb0, #afd2eb);
   box-sizing: border-box;
 }
 
@@ -18,7 +18,7 @@
   width: 100%;
   max-width: 650px;
   padding: 45px 35px;
-  background: white;
+  background: rgb(245, 245, 242);
   border-radius: 20px;
   text-align: center;
   box-shadow: 0 12px 35px rgba(0, 0, 0, 0.1);
@@ -29,14 +29,14 @@
   display: inline-block;
   padding: 8px 16px;
   background: #e8f5e9;
-  color: #176b3a;
+  color: #276641;
   border-radius: 20px;
   font-size: 14px;
   font-weight: 600;
 }
 
 h1 {
-  color: #167347;
+  color: #0d5f39;
   font-size: 48px;
   margin: 20px 0 8px;
 }
@@ -76,11 +76,129 @@ footer {
   margin-top: 30px;
   padding-top: 18px;
   border-top: 1px solid #e5e7eb;
-  color: #718096;
+  color: #657997;
   font-size: 13px;
 }
 
+.boton-aventura {
+  background: #16803c;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 15px 30px;
+  font-size: 17px;
+  font-weight: bold;
+  cursor: pointer;
+  margin: 20px 0;
+  transition: transform 0.2s, background 0.2s;
+}
+
+.boton-aventura:hover {
+  background: #11632f;
+  transform: scale(1.05);
+}
+
+.boton-aventura:focus-visible {
+  outline: 3px solid #f5c542;
+  outline-offset: 3px;
+}
+
+.boton-aventura:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.pantalla-mundo {
+  position: relative;
+  width: 100%;
+  max-width: 900px;
+  padding-top: 65px;
+  display: flex;
+  justify-content: center;
+}
+
+.boton-volver {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: #167347;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 12px 18px;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.boton-volver:hover {
+  background: #105832;
+}
+
+.boton-volver:focus-visible {
+  outline: 3px solid #f5c542;
+  outline-offset: 3px;
+}
+
+.opciones {
+  margin-top: 15px;
+}
+
+.opcion {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  margin: 10px 0;
+  background: white;
+  border: 1px solid #dce5ed;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.opcion:hover {
+  background: #e8f5e9;
+}
+
+.opcion input {
+  accent-color: #16803c;
+}
+
+.mensaje-correcto {
+  margin-top: 20px;
+  padding: 18px;
+  background: #e8f5e9;
+  border: 2px solid #81c784;
+  border-radius: 12px;
+  color: #176b3a;
+  line-height: 1.6;
+}
+
+.mensaje-correcto h3 {
+  margin-top: 0;
+}
+
+.mensaje-intento {
+  margin-top: 20px;
+  padding: 18px;
+  background: #fff8e1;
+  border: 2px solid #ffcc80;
+  border-radius: 12px;
+  color: #795500;
+  line-height: 1.6;
+}
+
+.mensaje-intento h3 {
+  margin-top: 0;
+}
+
 @media (max-width: 600px) {
+  .contenedor {
+    padding: 20px 12px;
+  }
+
   .bienvenida {
     padding: 30px 20px;
   }
@@ -91,5 +209,372 @@ footer {
 
   h2 {
     font-size: 20px;
+  }
+
+  .pantalla-mundo {
+    padding-top: 65px;
+  }
+
+  .boton-volver {
+    font-size: 13px;
+    padding: 10px 14px;
+  }
+
+  .boton-aventura {
+    max-width: 100%;
+    font-size: 15px;
+  }
+}
+
+.progreso-desafio {
+  margin: 25px 0;
+  text-align: center;
+}
+
+.progreso-desafio p {
+  color: #167347;
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 12px;
+}
+
+.progreso-desafio progress {
+  width: 100%;
+  height: 14px;
+  border: none;
+  border-radius: 10px;
+  overflow: hidden;
+  accent-color: #16803c;
+}
+
+.progreso-desafio progress::-webkit-progress-bar {
+  background: #e5e7eb;
+  border-radius: 10px;
+}
+
+.progreso-desafio progress::-webkit-progress-value {
+  background: #16803c;
+  border-radius: 10px;
+}
+
+.mensaje-final {
+  margin-top: 25px;
+  padding: 25px;
+  background: #e8f5e9;
+  border: 2px solid #81c784;
+  border-radius: 15px;
+  color: #176b3a;
+  text-align: center;
+  line-height: 1.7;
+}
+
+.mensaje-final h3 {
+  font-size: 25px;
+  margin-top: 0;
+}
+
+.mensaje-final p {
+  margin: 15px 0;
+}
+
+.mensaje-final .boton-aventura {
+  display: block;
+  margin: 25px auto 0;
+}
+
+.lista-mundos {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.lista-mundos .boton-aventura {
+  width: 100%;
+  max-width: 420px;
+  margin: 0;
+  padding: 16px 20px;
+  text-align: center;
+}
+
+.simulador-contenedor {
+  max-width: 850px;
+}
+
+.excel-simulador {
+  margin-top: 25px;
+  border: 1px solid #b9c7bd;
+  border-radius: 10px;
+  overflow: hidden;
+  background: white;
+  text-align: left;
+}
+
+.excel-encabezado {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 14px;
+  background: #167347;
+  color: white;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.excel-herramientas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  padding: 12px;
+  background: #e8f5e9;
+  color: #245b38;
+  font-size: 13px;
+  border-bottom: 1px solid #c9d8cd;
+}
+
+.excel-barra-formulas {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  background: #f8faf9;
+  border-bottom: 1px solid #d4ddd6;
+}
+
+.excel-celda-activa {
+  min-width: 45px;
+  padding: 8px;
+  background: white;
+  border: 1px solid #cbd5d1;
+  text-align: center;
+  font-weight: bold;
+  font-size: 13px;
+}
+
+.excel-fx {
+  color: #167347;
+  font-size: 18px;
+  font-weight: bold;
+  font-style: italic;
+}
+
+.excel-barra-formulas input {
+  flex: 1;
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid #cbd5d1;
+  border-radius: 5px;
+  font-size: 14px;
+}
+
+.excel-barra-formulas input:focus {
+  outline: 2px solid #16803c;
+}
+
+.excel-tabla-contenedor {
+  overflow-x: auto;
+}
+
+.excel-tabla {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-size: 14px;
+}
+
+.excel-tabla th,
+.excel-tabla td {
+  border: 1px solid #d9e0dc;
+  padding: 12px;
+  min-height: 40px;
+  overflow-wrap: anywhere;
+}
+
+.excel-tabla th {
+  background: #edf1ef;
+  color: #46564b;
+  text-align: center;
+  font-weight: 600;
+}
+
+.excel-tabla td {
+  background: white;
+  color: #243b53;
+}
+
+.excel-tabla tbody tr:first-child td {
+  font-weight: bold;
+  background: #f1f8f3;
+}
+
+.excel-resultado {
+  background: #e8f5e9 !important;
+  border: 2px solid #16803c !important;
+  font-weight: bold;
+  color: #167347 !important;
+}
+
+.excel-pestanas {
+  padding: 10px 15px;
+  background: #f3f5f4;
+  border-top: 1px solid #d9e0dc;
+}
+
+.excel-pestanas span {
+  display: inline-block;
+  padding: 8px 15px;
+  background: white;
+  color: #167347;
+  border-bottom: 3px solid #16803c;
+  font-size: 13px;
+  font-weight: bold;
+}
+
+@media (max-width: 600px) {
+  .excel-encabezado {
+    font-size: 12px;
+  }
+
+  .excel-herramientas {
+    gap: 12px;
+    font-size: 12px;
+  }
+
+  .excel-tabla th,
+  .excel-tabla td {
+    padding: 9px 6px;
+    font-size: 12px;
+  }
+
+  .excel-barra-formulas {
+    gap: 6px;
+  }
+
+  .excel-barra-formulas input {
+    font-size: 12px;
+  }
+}
+
+.excel-simulador {
+  background-color: #ffffff;
+  border: 1px solid #b8c4bd;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-top: 20px;
+}
+
+.excel-tabla-contenedor {
+  width: 100%;
+  overflow-x: auto;
+  background-color: #ffffff;
+}
+
+.excel-tabla {
+  width: 100%;
+  border-collapse: collapse;
+  border-spacing: 0;
+  table-layout: fixed;
+  background-color: #ffffff;
+}
+
+.excel-tabla th,
+.excel-tabla td {
+  border: 1px solid #c9d3cd;
+  padding: 12px;
+  height: 42px;
+  box-sizing: border-box;
+  text-align: left;
+  color: #263c30;
+  background-color: #ffffff;
+  font-size: 14px;
+}
+
+.excel-tabla th {
+  background-color: #e9efeb;
+  text-align: center;
+  font-weight: 600;
+  color: #344c3b;
+}
+
+.excel-tabla thead th {
+  background-color: #e2e9e4;
+}
+
+.excel-tabla tbody tr:first-child td {
+  background-color: #f1f8f3;
+  font-weight: bold;
+}
+
+.excel-tabla tbody tr:last-child td {
+  font-weight: bold;
+}
+
+.excel-tabla td.excel-resultado {
+  background-color: #ddf3e4;
+  border: 2px solid #16803c;
+  color: #166534;
+}
+
+.excel-barra-formulas {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  background-color: #f3f6f4;
+  border-bottom: 1px solid #c9d3cd;
+}
+
+.excel-barra-formulas input {
+  flex: 1;
+  min-width: 0;
+  padding: 10px;
+  background-color: white;
+  border: 1px solid #b8c4bd;
+  border-radius: 4px;
+  color: #263c30;
+}
+
+.excel-celda-activa {
+  padding: 9px 12px;
+  background-color: white;
+  border: 1px solid #b8c4bd;
+  color: #263c30;
+  font-weight: bold;
+}
+
+.excel-fx {
+  color: #16803c;
+  font-weight: bold;
+  font-style: italic;
+  font-size: 18px;
+}
+
+.excel-pestanas {
+  padding: 10px 15px;
+  background-color: #f1f4f2;
+  border-top: 1px solid #c9d3cd;
+}
+
+.excel-pestanas span {
+  display: inline-block;
+  background-color: white;
+  color: #16803c;
+  padding: 8px 15px;
+  border-bottom: 3px solid #16803c;
+  font-weight: bold;
+}
+
+@media (max-width: 600px) {
+  .excel-tabla th,
+  .excel-tabla td {
+    padding: 8px;
+    font-size: 12px;
+  }
+
+  .excel-barra-formulas {
+    gap: 6px;
+    padding: 8px;
   }
 }
