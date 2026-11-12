@@ -1,5 +1,5 @@
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import './App.css'
 import MundoUno from './components/MundoUno'
@@ -8,6 +8,17 @@ import MundoTres from './components/MundoTres'
 
 function App() {
   const [pantalla, setPantalla] = useState('bienvenida')
+  useEffect(() => {
+  const titulos = {
+    bienvenida: 'Bienvenida',
+    identificacion: 'Identificación',
+    mundos: 'Selección de mundos',
+    mundo1: 'Exploradores de Excel',
+    mundo2: 'El Reino de las Funciones',
+    mundo3: 'El Desafío Final'
+  }
+  document.title = `Excel Quest | ${titulos[pantalla] || 'Aprendizaje de Excel'}`
+}, [pantalla])
   const [nombreCompleto, setNombreCompleto] = useState('')
   const [rol, setRol] = useState('Estudiante')
   const [participante, setParticipante] = useState(null)
@@ -211,10 +222,14 @@ function App() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, ease: 'easeOut' }}
         >
-          <span className="etiqueta">Proyecto Integrador</span>
+          <header>
+  <span className="etiqueta">
+    Plan de Clase Digital Interactivo
+  </span>
 
-          <h1>Excel Quest</h1>
-          <h2>Aprendizaje Interactivo de Excel</h2>
+  <h1>Excel Quest</h1>
+  <h2>Aprendizaje Interactivo de Excel</h2>
+</header>
 
           <p className="descripcion">
             Bienvenido a un espacio educativo donde aprenderemos
