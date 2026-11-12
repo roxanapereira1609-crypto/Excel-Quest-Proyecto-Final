@@ -2,11 +2,23 @@
 const normalizarNombre = (nombre) =>
   nombre.trim().replace(/\s+/g, ' ')
 
-const validarParticipante = (nombre, rol) =>
-  typeof nombre === 'string' &&
-  normalizarNombre(nombre).split(' ').length >= 3 &&
-  normalizarNombre(nombre).length <= 150 &&
-  ['Estudiante', 'Docente'].includes(rol)
+const validarParticipante = (nombre, rol) => {
+  if (typeof nombre !== 'string') {
+    return false
+  }
+
+  const nombreLimpio = normalizarNombre(nombre)
+  const palabras = nombreLimpio.split(' ')
+
+  return (
+    palabras.length >= 3 &&
+    nombreLimpio.length <= 150 &&
+    palabras.every((palabra) =>
+      /^[\p{L}]+(?:[-'][\p{L}]+)*$/u.test(palabra)
+    ) &&
+    ['Estudiante', 'Docente'].includes(rol)
+  )
+}
 
 const obtenerConfiguracion = () => {
   const token = process.env.NOCODB_TOKEN
@@ -22,27 +34,38 @@ const obtenerConfiguracion = () => {
 
   return {
     token,
-    url: `${baseUrl}/api/v3/data/${baseId}/${tablaId}/records`
+    url: `${baseUrl}/api/v3/data/${encodeURIComponent(baseId)}/${encodeURIComponent(tablaId)}/records`
   }
 }
 
 const consultarRegistros = async (configuracion) => {
   const registros = []
-  let offset = 0
   const pageSize = 100
+  let page = 1
+  const maxPaginas = 100
 
-  while (true) {
+  while (page <= maxPaginas) {
     const url = new URL(configuracion.url)
-    url.searchParams.set('pageSize', String(pageSize))
-    url.searchParams.set('offset', String(offset))
 
-    const respuesta = await fetch(url, {
+    url.searchParams.set('pageSize', String(pageSize))
+    url.searchParams.set('page', String(page))
+
+    const respuesta = await fetch(url.toString(), {
+      method: 'GET',
       headers: {
-        'xc-token': configuracion.token
+        'xc-token': configuracion.token,
+        Accept: 'application/json'
       }
     })
 
     if (!respuesta.ok) {
+      const detalle = await respuesta.text()
+
+      console.error('Error de consulta NocoDB:', {
+        estado: respuesta.status,
+        detalle: detalle.slice(0, 500)
+      })
+
       throw new Error(
         `Error al consultar NocoDB: ${respuesta.status}`
       )
@@ -52,52 +75,56 @@ const consultarRegistros = async (configuracion) => {
 
     const pagina = Array.isArray(datos)
       ? datos
-      : datos.records || datos.list || []
+      : Array.isArray(datos.records)
+        ? datos.records
+        : Array.isArray(datos.list)
+          ? datos.list
+          : null
 
-    if (!Array.isArray(pagina)) {
-      throw new Error('Formato de respuesta no reconocido')
+    if (!pagina) {
+      throw new Error(
+        'La respuesta de NocoDB no contiene una lista de registros'
+      )
     }
 
     registros.push(...pagina)
 
     if (pagina.length < pageSize) {
-      break
+      return registros
     }
 
-    offset += pageSize
+    page += 1
   }
 
-  return registros
+  throw new Error(
+    'Se alcanzó el límite de páginas al consultar NocoDB'
+  )
 }
 
 const obtenerMundos = (registros, nombre, rol) => {
   const nombreBuscado = normalizarNombre(nombre).toLowerCase()
 
-  return [
-    ...new Set(
-      registros
-        .filter((registro) => {
-          const campos = registro.fields || registro
+  const mundos = registros
+    .filter((registro) => {
+      const campos = registro.fields || registro
+      const nombreRegistrado = campos['Nombre Estudiante']
 
-          const nombreRegistrado =
-            campos['Nombre Estudiante']
+      return (
+        typeof nombreRegistrado === 'string' &&
+        normalizarNombre(nombreRegistrado).toLowerCase() ===
+          nombreBuscado &&
+        campos.Rol === rol &&
+        campos.Resultado === 'Completado'
+      )
+    })
+    .map((registro) => {
+      const campos = registro.fields || registro
 
-          return (
-            typeof nombreRegistrado === 'string' &&
-            normalizarNombre(nombreRegistrado).toLowerCase() ===
-              nombreBuscado &&
-            campos.Rol === rol &&
-            campos.Resultado === 'Completado'
-          )
-        })
-        .map((registro) => {
-          const campos = registro.fields || registro
+      return Number(campos['Mundo Completado'])
+    })
+    .filter((mundo) => [1, 2, 3].includes(mundo))
 
-          return Number(campos['Mundo Completado'])
-        })
-        .filter((mundo) => [1, 2, 3].includes(mundo))
-    )
-  ].sort((a, b) => a - b)
+  return [...new Set(mundos)].sort((a, b) => a - b)
 }
 
 export default async function handler(req, res) {
@@ -135,7 +162,9 @@ export default async function handler(req, res) {
 
   try {
     configuracion = obtenerConfiguracion()
-  } catch {
+  } catch (error) {
+    console.error('Error de configuración:', error.message)
+
     return res.status(500).json({
       error: 'La conexión con NocoDB no está configurada'
     })
@@ -164,7 +193,8 @@ export default async function handler(req, res) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'xc-token': configuracion.token
+        'xc-token': configuracion.token,
+        Accept: 'application/json'
       },
       body: JSON.stringify({
         fields: {
@@ -177,32 +207,29 @@ export default async function handler(req, res) {
       })
     })
 
-   if (!respuesta.ok) {
-  const detalle = await respuesta.text()
+    if (!respuesta.ok) {
+      const detalle = await respuesta.text()
 
-  console.error('Error de consulta NocoDB:', {
-    estado: respuesta.status,
-    detalle: detalle.slice(0, 1000)
-  })
-
-  throw new Error(
-    `Error al consultar NocoDB: ${respuesta.status}`
-  )
-}
+      console.error('Error al guardar en NocoDB:', {
+        estado: respuesta.status,
+        detalle: detalle.slice(0, 500)
+      })
 
       return res.status(502).json({
         error: 'No fue posible guardar el progreso'
       })
     }
 
+    const mundosActualizados = [
+      ...new Set([...mundos, datos.mundo])
+    ].sort((a, b) => a - b)
+
     return res.status(201).json({
       mensaje: 'Progreso registrado correctamente',
-      mundosCompletados: [...mundos, datos.mundo].sort(
-        (a, b) => a - b
-      )
+      mundosCompletados: mundosActualizados
     })
   } catch (error) {
-    console.error('Error de NocoDB:', error)
+    console.error('Error de NocoDB:', error.message)
 
     return res.status(502).json({
       error: 'No fue posible conectar con NocoDB'
