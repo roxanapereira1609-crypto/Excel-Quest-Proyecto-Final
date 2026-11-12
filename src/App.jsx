@@ -12,24 +12,69 @@ function App() {
   const [rol, setRol] = useState('Estudiante')
   const [participante, setParticipante] = useState(null)
   const [errorNombre, setErrorNombre] = useState('')
+  const [mundosCompletados, setMundosCompletados] = useState([])
+  const [consultando, setConsultando] = useState(false)
+  const [errorConsulta, setErrorConsulta] = useState('')
+  const [estadoGuardado, setEstadoGuardado] = useState('')
+  const [guardando, setGuardando] = useState(false)
+  const [mundoPendiente, setMundoPendiente] = useState(null)
 
   const validarNombre = (nombre) => {
     const palabras = nombre.trim().split(/\s+/).filter(Boolean)
 
     return (
-      palabras.length >= 2 &&
+      palabras.length >= 3 &&
+      nombre.trim().length <= 150 &&
       palabras.every((palabra) =>
         /^[\p{L}]+(?:[-'][\p{L}]+)*$/u.test(palabra)
       )
     )
   }
 
-  const ingresar = (evento) => {
+  const consultarProgreso = async (datosParticipante) => {
+    setConsultando(true)
+    setErrorConsulta('')
+
+    try {
+      const parametros = new URLSearchParams({
+        nombre: datosParticipante.nombre,
+        rol: datosParticipante.rol
+      })
+
+      const respuesta = await fetch(
+        `/api/progreso?${parametros.toString()}`
+      )
+
+      if (!respuesta.ok) {
+        throw new Error('No fue posible consultar el progreso')
+      }
+
+      const datos = await respuesta.json()
+
+      const mundos = Array.isArray(datos.mundosCompletados)
+        ? datos.mundosCompletados
+            .map(Number)
+            .filter((mundo) => [1, 2, 3].includes(mundo))
+        : []
+
+      setMundosCompletados([...new Set(mundos)])
+      return true
+    } catch {
+      setErrorConsulta(
+        'No pudimos recuperar tus avances. Puedes volver a intentarlo.'
+      )
+      return false
+    } finally {
+      setConsultando(false)
+    }
+  }
+
+  const ingresar = async (evento) => {
     evento.preventDefault()
 
     if (!validarNombre(nombreCompleto)) {
       setErrorNombre(
-        'Escribe tu nombre y al menos un apellido, utilizando solamente letras.'
+        'Escribe tus nombres y apellidos completos (al menos tres palabras), utilizando solamente letras.'
       )
       return
     }
@@ -39,18 +84,123 @@ function App() {
       rol
     }
 
-    setParticipante(datosParticipante)
     setErrorNombre('')
+    setEstadoGuardado('')
+    setMundoPendiente(null)
+    setMundosCompletados([])
+    setParticipante(datosParticipante)
     setPantalla('mundos')
+
+    await consultarProgreso(datosParticipante)
   }
 
-  const cambiarParticipante = () => {
+  const guardarProgreso = async (mundo) => {
+    if (!participante || guardando) {
+      return
+    }
+
+    if (mundosCompletados.includes(mundo)) {
+      setEstadoGuardado(
+        '¡Este mundo ya está registrado como completado!'
+      )
+      setMundoPendiente(null)
+      return
+    }
+
+    setGuardando(true)
+    setEstadoGuardado('Guardando tu progreso...')
+    setMundoPendiente(mundo)
+
+    try {
+      const respuesta = await fetch('/api/progreso', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          nombre: participante.nombre,
+          rol: participante.rol,
+          mundo,
+          resultado: 'Completado'
+        })
+      })
+
+      if (!respuesta.ok) {
+        throw new Error('No fue posible guardar el progreso')
+      }
+
+      const datos = await respuesta.json()
+
+      if (Array.isArray(datos.mundosCompletados)) {
+        setMundosCompletados(
+          [...new Set(
+            datos.mundosCompletados
+              .map(Number)
+              .filter((numero) => [1, 2, 3].includes(numero))
+          )]
+        )
+      } else {
+        setMundosCompletados((anteriores) =>
+          [...new Set([...anteriores, mundo])]
+        )
+      }
+
+      setEstadoGuardado(
+        '¡Tu progreso se guardó correctamente en Excel Quest!'
+      )
+      setMundoPendiente(null)
+    } catch {
+      setEstadoGuardado(
+        'No se pudo guardar tu progreso. Comprueba tu conexión y vuelve a intentarlo.'
+      )
+    } finally {
+      setGuardando(false)
+    }
+  }
+
+  const abrirMundo = (numero) => {
+    setEstadoGuardado('')
+    setMundoPendiente(null)
+    setPantalla(`mundo${numero}`)
+  }
+
+  const cerrarSesion = () => {
     setParticipante(null)
     setNombreCompleto('')
     setRol('Estudiante')
     setErrorNombre('')
+    setMundosCompletados([])
+    setErrorConsulta('')
+    setEstadoGuardado('')
+    setMundoPendiente(null)
     setPantalla('identificacion')
   }
+
+  const nombresMundos = [
+    'Exploradores de Excel',
+    'El Reino de las Funciones',
+    'El Desafío Final'
+  ]
+
+  const mensajeGuardado = (
+    <>
+      {estadoGuardado && (
+        <p role="status" className="mensaje">
+          {estadoGuardado}
+        </p>
+      )}
+
+      {mundoPendiente !== null && !guardando && (
+        <button
+          type="button"
+          className="boton-aventura"
+          onClick={() => guardarProgreso(mundoPendiente)}
+        >
+          Reintentar guardar progreso
+        </button>
+      )}
+    </>
+  )
 
   return (
     <main className="contenedor">
@@ -73,17 +223,9 @@ function App() {
           </p>
 
           <div className="informacion">
-            <p>
-              <strong>Curso:</strong> TACs
-            </p>
-
-            <p>
-              <strong>Nivel:</strong> Tercero Básico
-            </p>
-
-            <p>
-              <strong>Tema:</strong> Funciones básicas de Excel
-            </p>
+            <p><strong>Curso:</strong> TACs</p>
+            <p><strong>Nivel:</strong> Tercero Básico</p>
+            <p><strong>Tema:</strong> Funciones básicas de Excel</p>
           </div>
 
           <p className="mensaje">
@@ -96,7 +238,9 @@ function App() {
             whileHover={{ scale: 1.04 }}
             whileTap={{ scale: 0.88 }}
             onClick={() =>
-              setPantalla(participante ? 'mundos' : 'identificacion')
+              setPantalla(
+                participante ? 'mundos' : 'identificacion'
+              )
             }
           >
             Comenzar aventura
@@ -120,7 +264,6 @@ function App() {
           </span>
 
           <h1>¡Comienza tu aventura!</h1>
-
           <h2>Identificación del participante</h2>
 
           <p className="descripcion">
@@ -139,7 +282,7 @@ function App() {
                     fontWeight: 'bold'
                   }}
                 >
-                  Tu nombre y al menos un apellido
+                  Nombre completo
                 </label>
 
                 <input
@@ -150,8 +293,9 @@ function App() {
                     setNombreCompleto(evento.target.value)
                     setErrorNombre('')
                   }}
-                  placeholder="Ejemplo: María López"
+                  placeholder="Ejemplo: María Fernanda López García"
                   autoComplete="name"
+                  maxLength={150}
                   required
                   aria-invalid={Boolean(errorNombre)}
                   aria-describedby={
@@ -193,7 +337,9 @@ function App() {
                 <select
                   id="rol"
                   value={rol}
-                  onChange={(evento) => setRol(evento.target.value)}
+                  onChange={(evento) =>
+                    setRol(evento.target.value)
+                  }
                   style={{
                     width: '100%',
                     padding: '12px',
@@ -203,13 +349,8 @@ function App() {
                     fontSize: '16px'
                   }}
                 >
-                  <option value="Estudiante">
-                    Estudiante
-                  </option>
-
-                  <option value="Docente">
-                    Docente
-                  </option>
+                  <option value="Estudiante">Estudiante</option>
+                  <option value="Docente">Docente</option>
                 </select>
               </div>
             </div>
@@ -224,9 +365,13 @@ function App() {
               className="boton-aventura"
               whileHover={{ scale: 1.04 }}
               whileTap={{ scale: 0.88 }}
-              disabled={!validarNombre(nombreCompleto)}
+              disabled={
+                !validarNombre(nombreCompleto) || consultando
+              }
             >
-              Ingresar a Excel Quest
+              {consultando
+                ? 'Consultando avances...'
+                : 'Ingresar a Excel Quest'}
             </motion.button>
           </form>
 
@@ -263,43 +408,74 @@ function App() {
             diferentes conocimientos de Excel.
           </p>
 
+          {consultando ? (
+            <p className="mensaje" role="status">
+              Recuperando tus avances...
+            </p>
+          ) : errorConsulta ? (
+            <>
+              <p className="mensaje" role="alert">
+                {errorConsulta}
+              </p>
+
+              <button
+                type="button"
+                className="boton-aventura"
+                onClick={() => consultarProgreso(participante)}
+              >
+                Reintentar recuperar avances
+              </button>
+            </>
+          ) : (
+            <div className="informacion">
+              <h3>Tu progreso</h3>
+
+              <p>
+                Has completado {mundosCompletados.length} de 3 mundos.
+              </p>
+
+              <progress
+                value={mundosCompletados.length}
+                max={3}
+                aria-label="Progreso general de Excel Quest"
+              />
+            </div>
+          )}
+
           <div className="informacion">
             <h3>Mundos educativos</h3>
 
             <div className="lista-mundos">
-              <motion.button
-                className="boton-aventura"
-                whileHover={{ scale: 1.04 }}
-                whileTap={{ scale: 0.88 }}
-                transition={{ duration: 0.2 }}
-                onClick={() => setPantalla('mundo1')}
-              >
-                Mundo 1: Exploradores de Excel
-              </motion.button>
+              {nombresMundos.map((nombre, indice) => {
+                const numero = indice + 1
+                const completado =
+                  mundosCompletados.includes(numero)
 
-              <motion.button
-                className="boton-aventura"
-                whileHover={{ scale: 1.04 }}
-                whileTap={{ scale: 0.88 }}
-                transition={{ duration: 0.2 }}
-                onClick={() => setPantalla('mundo2')}
-              >
-                Mundo 2: El Reino de las Funciones
-              </motion.button>
+                return (
+                  <div key={numero}>
+                    <motion.button
+                      className="boton-aventura"
+                      whileHover={{ scale: 1.04 }}
+                      whileTap={{ scale: 0.88 }}
+                      transition={{ duration: 0.2 }}
+                      onClick={() => abrirMundo(numero)}
+                    >
+                      Mundo {numero}: {nombre}
+                    </motion.button>
 
-              <motion.button
-                className="boton-aventura"
-                whileHover={{ scale: 1.04 }}
-                whileTap={{ scale: 0.88 }}
-                transition={{ duration: 0.2 }}
-                onClick={() => setPantalla('mundo3')}
-              >
-                Mundo 3: El Desafío Final
-              </motion.button>
+                    {completado && (
+                      <p className="mensaje">
+                        ✓ Mundo completado
+                      </p>
+                    )}
+                  </div>
+                )
+              })}
             </div>
           </div>
 
           <button
+            type="button"
             className="boton-aventura"
             onClick={() => setPantalla('bienvenida')}
           >
@@ -307,10 +483,11 @@ function App() {
           </button>
 
           <button
+            type="button"
             className="boton-aventura"
-            onClick={cambiarParticipante}
+            onClick={cerrarSesion}
           >
-            Cambiar participante
+            Cerrar sesión
           </button>
         </motion.section>
       )}
@@ -329,7 +506,9 @@ function App() {
             ← Volver a los mundos
           </button>
 
-          <MundoUno />
+          <MundoUno onCompletar={guardarProgreso} />
+
+          {mensajeGuardado}
         </motion.div>
       )}
 
@@ -347,7 +526,9 @@ function App() {
             ← Volver a los mundos
           </button>
 
-          <MundoDos />
+          <MundoDos onCompletar={guardarProgreso} />
+
+          {mensajeGuardado}
         </motion.div>
       )}
 
@@ -365,7 +546,9 @@ function App() {
             ← Volver a los mundos
           </button>
 
-          <MundoTres />
+          <MundoTres onCompletar={guardarProgreso} />
+
+          {mensajeGuardado}
         </motion.div>
       )}
     </main>

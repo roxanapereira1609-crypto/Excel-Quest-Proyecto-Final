@@ -85,7 +85,7 @@ const animacionMensaje = {
   transition: { duration: 0.4, ease: 'easeOut' }
 }
 
-function MundoTres() {
+function MundoTres({ onCompletar }) {
   const [indice, setIndice] = useState(0)
   const [formula, setFormula] = useState('')
   const [verificado, setVerificado] = useState(false)
@@ -113,6 +113,7 @@ function MundoTres() {
 
     if (indice === desafios.length - 1) {
       setFinalizado(true)
+      onCompletar?.(3)
       return
     }
 

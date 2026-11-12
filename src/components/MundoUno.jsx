@@ -40,7 +40,7 @@ const animacionMensaje = {
   transition: { duration: 0.4, ease: 'easeOut' }
 }
 
-function MundoUno() {
+function MundoUno({ onCompletar }) {
   const [indice, setIndice] = useState(0)
   const [respuesta, setRespuesta] = useState('')
   const [verificado, setVerificado] = useState(false)
@@ -63,6 +63,11 @@ function MundoUno() {
 
     if (esUltima) {
       setFinalizado(true)
+
+      if (onCompletar) {
+        onCompletar(1)
+      }
+
       return
     }
 
