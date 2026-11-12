@@ -177,11 +177,18 @@ export default async function handler(req, res) {
       })
     })
 
-    if (!respuesta.ok) {
-      console.error(
-        'Error al guardar en NocoDB:',
-        respuesta.status
-      )
+   if (!respuesta.ok) {
+  const detalle = await respuesta.text()
+
+  console.error('Error de consulta NocoDB:', {
+    estado: respuesta.status,
+    detalle: detalle.slice(0, 1000)
+  })
+
+  throw new Error(
+    `Error al consultar NocoDB: ${respuesta.status}`
+  )
+}
 
       return res.status(502).json({
         error: 'No fue posible guardar el progreso'
