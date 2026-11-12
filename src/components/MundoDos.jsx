@@ -76,7 +76,7 @@ const animacionMensaje = {
   transition: { duration: 0.4, ease: 'easeOut' }
 }
 
-function MundoDos() {
+function MundoDos({ onCompletar }) {
   const [indice, setIndice] = useState(0)
   const [respuesta, setRespuesta] = useState('')
   const [verificado, setVerificado] = useState(false)
@@ -99,6 +99,7 @@ function MundoDos() {
 
     if (esUltimo) {
       setFinalizado(true)
+      onCompletar?.(2)
       return
     }
 
@@ -119,7 +120,6 @@ function MundoDos() {
       <span className="etiqueta">Mundo 2</span>
 
       <h1>El Reino de las Funciones</h1>
-
       <h2>Aplica tus conocimientos de Excel</h2>
 
       {!finalizado ? (
@@ -158,10 +158,7 @@ function MundoDos() {
 
             <div className="opciones">
               {desafioActual.opciones.map((opcion) => (
-                <label
-                  key={opcion}
-                  className="opcion"
-                >
+                <label key={opcion} className="opcion">
                   <input
                     type="radio"
                     name="respuesta"
@@ -173,7 +170,6 @@ function MundoDos() {
                       setVerificado(false)
                     }}
                   />
-
                   <span>{opcion}</span>
                 </label>
               ))}
@@ -202,9 +198,7 @@ function MundoDos() {
               >
                 <h3>¡Felicitaciones!</h3>
 
-                <p>
-                  Has seleccionado la fórmula correcta.
-                </p>
+                <p>Has seleccionado la fórmula correcta.</p>
 
                 <p>{desafioActual.explicacion}</p>
 
